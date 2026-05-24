@@ -1,0 +1,14 @@
+[project]
+name = "media-tools"
+version = "0.1.0"
+description = "Media automation toolkit"
+requires-python = ">=3.14"
+
+dependencies = [
+    "yt-dlp",
+    "numpy",
+    "ffmpeg-python",
+]
+
+[project.scripts]
+media-tools = "media_tools.main:main"
