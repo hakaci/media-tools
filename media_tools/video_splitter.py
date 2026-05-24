@@ -10,8 +10,6 @@ def split_video(video_path, timestamps_path, include_original_name, output_folde
 
     # Return list of timestamps and segment names
     timestamps = parse_timestamps(timestamps_path)
-    print("DEBUG: timestamps loaded =", len(timestamps))
-    print("DEBUG sample:", timestamps[:3])
 
     for i in range(len(timestamps)):
         start_time = timestamps[i][0]
@@ -31,10 +29,6 @@ def split_video(video_path, timestamps_path, include_original_name, output_folde
             safe_video_name = sanitize_filename(segment_name)
         
         output_file = os.path.join(output_folder, f"{safe_video_name}.mp4")
-
-        # Debug prints to check values
-        print(f"Processing: {segment_name}")
-        print(f"Start: {start_time} ({start_seconds}s), Duration: {duration}s, Output: {output_file}")
 
         try:
             # Run FFmpeg command

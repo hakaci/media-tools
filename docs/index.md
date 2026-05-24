@@ -2,15 +2,17 @@
 
 ## Commands
 
-### split
-Splits a video into segments based on timestamps.
+## split
 
-#### Usage
+Split a media file into segments using timestamps.
+
+### Usage
+
 ```bash
-media-tools split <video_path> [timestamps_path] [output_folder] [include_original]
+media-tools split <video_path> [options]
 
-Arguments:
-video_path         Required. Path to input video
-timestamps_path    Optional. Default: C:\\Users\\hakaci-desktop\\Videos\\video_split_output\\timestamps.txt
-output_folder      Optional. Default: C:\\Users\\hakaci-desktop\\Videos\\video_split_output
-include_original   Optional. yes / no (default: yes)
+| Option             | Description                              | Default                                                            |
+| ------------------ | ---------------------------------------- | ------------------------------------------------------------------ |
+| --timestamps       | Path to timestamps file                  | `C:\Users\hakaci-desktop\Videos\video_split_output\timestamps.txt` |
+| --output           | Output folder                            | `C:\Users\hakaci-desktop\Videos\video_split_output`                |
+| --include-original | Disable original filename                | Off                                                                |
