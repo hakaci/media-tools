@@ -11,23 +11,22 @@ def run(args):
     Append YouTube metadata into CSV.
 
     Examples:
-    media-tools metadata --url <video>
-    media-tools metadata --url <video1> --url <video2>
+    media-tools metadata --url <video1> <video2>
     media-tools metadata --playlist <url>
     """
 
-    # -------------------------
-    # CLI argument parser
-    # -------------------------
     parser = argparse.ArgumentParser(
         prog="media-tools metadata",
         description="Append YouTube metadata into CSV"
     )
 
+    # -------------------------
+    # Multiple positional URLs
+    # -------------------------
     parser.add_argument(
         "--url",
-        action="append",
-        help="Single video URL(s)"
+        nargs="+",
+        help="One or more YouTube video URLs"
     )
 
     parser.add_argument(
@@ -38,7 +37,7 @@ def run(args):
     parsed = parser.parse_args(args)
 
     # -------------------------
-    # Require explicit input
+    # Validation
     # -------------------------
     if not parsed.url and not parsed.playlist:
         print("Error: provide --url or --playlist")
