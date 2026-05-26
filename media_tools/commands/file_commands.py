@@ -1,7 +1,7 @@
 import argparse
 
 from media_tools.file_manager.fs_ops import rename_all_from_metadata, file_search, safe_rename
-from media_tools.file_manager.metadata_ops import create_metadata_csv
+from media_tools.file_manager.metadata_ops import create_metadata_csv, update_metadata_csv
 from media_tools.file_manager.csv_ops import get_metadata_csv_list
 
 from media_tools.constants import (
@@ -18,6 +18,7 @@ def run(args):
 
     sub.add_parser("create-csv")
     sub.add_parser("rename-all")
+    sub.add_parser("update-csv")
 
     parsed = parser.parse_args(args)
 
@@ -38,6 +39,13 @@ def run(args):
         rename_all_from_metadata(rows, safe_rename)
 
         print("Rename completed")
+
+    # -------------------------
+    # UPDATE CSV
+    # -------------------------
+    elif parsed.cmd == "update-csv":
+        update_metadata_csv()
+        print("CSV updated")
 
     else:
         parser.print_help()

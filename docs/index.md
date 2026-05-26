@@ -94,6 +94,15 @@ Rename all files using metadata CSV mapping.
 media-tools file rename-all
 ```
 
+## update-csv
+
+Update metadata CSV by syncing filesystem changes.
+
+### Usage
+```bash
+media-tools file update-csv
+```
+
 ## Notes
 
 - Need ffmpeg and yt-dlp in CMD Path

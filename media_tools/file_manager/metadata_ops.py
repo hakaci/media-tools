@@ -5,14 +5,14 @@ import csv
 import os.path
 from media_tools.file_manager.csv_ops import (
     get_metadata_csv_list,
-    get_absolute_paths_from_metadata_csv,
     get_last_row_of_csv,
     append_metadata_csv,
     write_metadata_csv
 )
 from media_tools.file_manager.fs_ops import (
     file_search,
-    rename_a_file_given_name
+    rename_a_file_given_name,
+    lowercase_extensions
 )
 
 from media_tools.constants import (
@@ -57,60 +57,97 @@ def create_rename_metadata_rows(files):
     return metadataRows
 
 def update_metadata_csv():
-    pathListNames = []
-    allFilesNames = []
-    droppedMetadataList = []
-    filesChangedDirectoryReal = []
+    dropped_metadata = []
 
-    metadataCSVList = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
-    newItemMetaData = metadataCSVList.copy()
+    # normalize extensions first
+    lowercase_extensions(HOARD_PATHS, EXTS)
 
-    allFiles = list(map(Path, file_search(HOARD_PATHS, EXTS)))
+    # current filesystem files
+    all_files = list(map(Path, file_search(HOARD_PATHS, EXTS)))
 
-    # build CSV path list
-    pathList = list(map(Path, get_absolute_paths_from_metadata_csv(metadataCSVList)))
+    # current metadata rows
+    metadata_rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
 
-    # extract names
-    for p in pathList:
-        pathListNames.append(p.stem)
+    # keep header
+    header = metadata_rows[0]
 
-    for f in allFiles:
-        allFilesNames.append(f.stem)
+    # data rows only
+    rows = metadata_rows[1:]
 
-    # find deleted items
-    deletedItems = set(pathListNames) - set(allFilesNames)
+    # -----------------------------------
+    # BUILD LOOKUP TABLES
+    # -----------------------------------
 
-    # remove deleted from metadata + collect dropped
-    i = 0
-    while i < len(newItemMetaData):
-        if newItemMetaData[i][1] in deletedItems:
-            droppedMetadataList.append(newItemMetaData.pop(i))
+    # filesystem names
+    filesystem_names = {
+        f.name: f
+        for f in all_files
+    }
+
+    # metadata names
+    metadata_names = {
+        f"{row[1]}{row[2]}": row
+        for row in rows
+    }
+
+    # -----------------------------------
+    # REMOVE DELETED FILES
+    # -----------------------------------
+
+    updated_rows = []
+
+    for row in rows:
+        file_name = f"{row[1]}{row[2]}"
+
+        # file still exists
+        if file_name in filesystem_names:
+            updated_rows.append(row)
+
+        # file deleted
         else:
-            i += 1
+            dropped_metadata.append(row)
 
-    # detect moved files
-    newItemMetaDataPath = list(map(Path, get_absolute_paths_from_metadata_csv(newItemMetaData)))
-    filesChangedDirectory = set(newItemMetaDataPath) - set(allFiles)
+    # -----------------------------------
+    # UPDATE MOVED FILE PATHS
+    # -----------------------------------
 
-    # resolve new locations
-    for moved in filesChangedDirectory:
-        name = moved.stem
+    for row in updated_rows:
+        file_name = f"{row[1]}{row[2]}"
 
-        for i, f in enumerate(allFiles):
-            if f.stem == name:
-                filesChangedDirectoryReal.append(f)
-                break
+        real_file = filesystem_names[file_name]
 
-    # update parent paths
-    for f in filesChangedDirectoryReal:
-        for row in newItemMetaData:
-            if row[1] == f.stem:
-                row[4] = str(f.parent)
-                break
+        # update parent path
+        row[4] = str(real_file.parent)
 
-    # persist changes
-    append_metadata_csv(droppedMetadataList, HOARD_DROPPED_METADATA_CSV_PATH)
-    write_metadata_csv(newItemMetaData, HOARD_METADATA_CSV_PATH)
+    # -----------------------------------
+    # APPEND NEW FILES
+    # -----------------------------------
+
+    new_files = [
+        f for f in all_files
+        if f.name not in metadata_names
+    ]
+
+    if new_files:
+        new_rows = create_rename_metadata_rows(new_files)
+        updated_rows.extend(new_rows)
+
+    # -----------------------------------
+    # SAVE RESULTS
+    # -----------------------------------
+
+    # archive deleted rows
+    if dropped_metadata:
+        append_metadata_csv(
+            dropped_metadata,
+            HOARD_DROPPED_METADATA_CSV_PATH
+        )
+
+    # rewrite metadata CSV
+    write_metadata_csv(
+        updated_rows,
+        HOARD_METADATA_CSV_PATH
+    )
     
 def build_metadata_rows(files):
     # convert files → csv rows
