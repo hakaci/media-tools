@@ -5,7 +5,8 @@ from os.path import join, exists, relpath, getctime
 
 from media_tools.constants import (
     PATHS,
-    EXTS
+    EXTS,
+    REVERSE_NAMING_CONST
 )
 
 def file_search(paths, extensions):
@@ -86,3 +87,18 @@ def safe_rename(old_path, new_name):
 
     old_path.rename(new_path)
     return new_path
+
+def build_path(row):
+    # row = [no, file_name, ext, time, parent]
+    return Path(row[4]) / f"{row[1]}{row[2]}"
+
+
+def rename_all_from_metadata(rows, safe_rename):
+    # rename using reverse naming rule
+
+    for row in rows:
+        old_path = build_path(row)
+
+        new_name = f"{REVERSE_NAMING_CONST - int(row[0])}{old_path.suffix}"
+
+        safe_rename(old_path, new_name)

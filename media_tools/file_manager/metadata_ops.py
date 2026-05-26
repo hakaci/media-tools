@@ -1,6 +1,8 @@
 from genericpath import getctime
 from pathlib import Path
 from operator import itemgetter
+import csv
+import os.path
 from media_tools.file_manager.csv_ops import (
     get_metadata_csv_list,
     get_absolute_paths_from_metadata_csv,
@@ -17,7 +19,8 @@ from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_DROPPED_METADATA_CSV_PATH,
     PATHS,
-    EXTS
+    EXTS,
+    FIELDS
 )
 
 
@@ -108,3 +111,27 @@ def update_metadata_csv():
     # persist changes
     append_metadata_csv(droppedMetadataList, HOARD_DROPPED_METADATA_CSV_PATH)
     write_metadata_csv(newItemMetaData, HOARD_METADATA_CSV_PATH)
+    
+def build_metadata_rows(files):
+    # convert files → csv rows
+    rows = []
+
+    for i, f in enumerate(files, 1):
+        rows.append([
+            i,
+            f.stem,
+            f.suffix,
+            int(os.path.getctime(f)),
+            str(f.parent)
+        ])
+
+    return rows
+
+
+def create_metadata_csv(files):
+    # write full CSV
+    with open(HOARD_METADATA_CSV_PATH, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+
+        w.writerow(FIELDS)
+        w.writerows(build_metadata_rows(files))
