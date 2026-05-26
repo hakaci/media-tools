@@ -18,7 +18,7 @@ from media_tools.file_manager.fs_ops import (
 from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_DROPPED_METADATA_CSV_PATH,
-    PATHS,
+    HOARD_PATHS,
     EXTS,
     FIELDS
 )
@@ -65,7 +65,7 @@ def update_metadata_csv():
     metadataCSVList = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
     newItemMetaData = metadataCSVList.copy()
 
-    allFiles = list(map(Path, file_search(PATHS, EXTS)))
+    allFiles = list(map(Path, file_search(HOARD_PATHS, EXTS)))
 
     # build CSV path list
     pathList = list(map(Path, get_absolute_paths_from_metadata_csv(metadataCSVList)))

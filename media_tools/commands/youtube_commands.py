@@ -9,48 +9,50 @@ from media_tools.youtube.downloader import download_youtube_videos
 
 
 def run(args):
-    parser = argparse.ArgumentParser(prog="media-tools youtube")
+    parser = argparse.ArgumentParser(
+        prog="media-tools youtube",
+        description="YouTube tools"
+    )
 
-    sub = parser.add_subparsers(dest="cmd")
-
-    # -------------------------
-    # METADATA COMMAND
-    # -------------------------
-    meta = sub.add_parser("metadata")
-    meta.add_argument("--url", nargs="+")
-    meta.add_argument("--playlist")
+    subparsers = parser.add_subparsers(dest="command")
 
     # -------------------------
-    # DOWNLOAD COMMAND
+    # metadata command
     # -------------------------
-    dl = sub.add_parser("download")
-    dl.add_argument("--channel", required=True)
-    dl.add_argument("--limit", type=int, default=10)
+    meta = subparsers.add_parser("metadata", help="Fetch and store video metadata")
+    meta.add_argument("--url", nargs="+", help="One or more video URLs")
+    meta.add_argument("--playlist", help="Playlist or channel URL")
+
+    # -------------------------
+    # download command
+    # -------------------------
+    dl = subparsers.add_parser("download", help="Download videos from CSV")
+    dl.add_argument("--channel", help="Channel name from CSV")
+    dl.add_argument("--limit", type=int, default=10, help="Download limit")
 
     parsed = parser.parse_args(args)
 
     # -------------------------
-    # METADATA ROUTING
+    # ROUTING
     # -------------------------
-    if parsed.cmd == "metadata":
+    if parsed.command == "metadata":
+
+        if parsed.url:
+            append_single_video_metadata(parsed.url)
+            return
 
         if parsed.playlist:
             append_playlist_metadata(parsed.playlist)
+            return
 
-        elif parsed.url:
-            append_single_video_metadata(parsed.url)
+        parser.parse_args(["metadata", "--help"])
+        return
 
-        else:
-            parser.error("metadata requires --url or --playlist")
-
-    # -------------------------
-    # DOWNLOAD ROUTING
-    # -------------------------
-    elif parsed.cmd == "download":
+    if parsed.command == "download":
         download_youtube_videos(
             channel_name=parsed.channel,
             limit=parsed.limit
         )
+        return
 
-    else:
-        parser.print_help()
+    parser.print_help()

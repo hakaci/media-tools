@@ -4,7 +4,7 @@ from os import walk, makedirs
 from os.path import join, exists, relpath, getctime
 
 from media_tools.constants import (
-    PATHS,
+    HOARD_PATHS,
     EXTS,
     REVERSE_NAMING_CONST
 )
@@ -40,7 +40,7 @@ def lowercase_extensions(paths, extensions):
         
 def empty_hoard_folders():
     # search files given paths
-    files = file_search(PATHS, EXTS)
+    files = file_search(HOARD_PATHS, EXTS)
 
     for f in files:
         # delete file

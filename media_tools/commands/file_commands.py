@@ -4,9 +4,9 @@ from media_tools.file_manager.fs_ops import rename_all_from_metadata, file_searc
 from media_tools.file_manager.metadata_ops import create_metadata_csv
 from media_tools.file_manager.csv_ops import get_metadata_csv_list
 
-from media_tools.config import (
+from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
-    PATHS,
+    HOARD_PATHS,
     EXTS
 )
 
@@ -25,7 +25,7 @@ def run(args):
     # CREATE CSV
     # -------------------------
     if parsed.cmd == "create-csv":
-        files = file_search(PATHS, EXTS)
+        files = file_search(HOARD_PATHS, EXTS)
         create_metadata_csv(files)
         print("CSV created")
 
