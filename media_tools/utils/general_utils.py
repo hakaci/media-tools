@@ -1,4 +1,5 @@
 import re
+from datetime import datetime as dt
 
 
 def parse_timestamps(file_path):
@@ -32,3 +33,10 @@ def convert_time_to_seconds(time_str):
 def sanitize_filename(name):
     """Removes invalid characters for filenames."""
     return re.sub(r'[<>:"/\\|?*]', '_', name)
+
+def get_start_unixtimestamp_by_given_day(day):
+    # 86400 seconds = 1 day
+    days_in_seconds = float(day) * 86400
+
+    # current utc timestamp minus given days
+    return dt.now().timestamp() - days_in_seconds
