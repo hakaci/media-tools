@@ -1,14 +1,12 @@
 # Media Tools CLI
 
 ## split
-
 Split a media file into segments using timestamps.
 
 ### Usage
 ```bash
 media-tools split <video_path> [options]
 ```
-
 | Option             | Description                           | Default                                                            |
 | ------------------ | ------------------------------------- | ------------------------------------------------------------------ |
 | --timestamps       | Path to timestamps file               | `C:\Users\hakaci-desktop\Videos\video_split_output\timestamps.txt` |
@@ -22,14 +20,12 @@ media-tools split "video.mp4" --timestamps "C:\data\timestamps.txt"
 ```
 
 ## download
-
 Download YouTube videos from metadata CSV.
 
 ### Usage
 ```bash
 media-tools youtube download [--channel NAME] [--limit N]
 ```
-
 | Option    | Description                  | Default       |
 | --------- | ---------------------------- | ------------- |
 | --channel | Channel name from CSV        | (interactive) |
@@ -47,14 +43,12 @@ media-tools youtube download
 ```
 
 ## metadata
-
 Append YouTube video metadata into CSV.
 
 ### Usage
 ```bash
 media-tools youtube metadata [--url URL ...] [--playlist URL]
 ```
-
 | Option     | Description             | Default |
 | ---------- | ----------------------- | ------- |
 | --url      | One or more video URLs  | None    |
@@ -68,7 +62,6 @@ media-tools youtube metadata --playlist https://youtube.com/playlist?list=xxxx
 ```
 
 ## file
-
 File management utilities.
 
 ### Usage
@@ -77,7 +70,6 @@ media-tools file <command>
 ```
 
 ## create-csv
-
 Create metadata CSV from filesystem scan.
 
 ### Usage
@@ -85,17 +77,7 @@ Create metadata CSV from filesystem scan.
 media-tools file create-csv
 ```
 
-## rename-all
-
-Rename all files using metadata CSV mapping.
-
-### Usage
-```bash
-media-tools file rename-all
-```
-
 ## update-csv
-
 Update metadata CSV by syncing filesystem changes.
 
 ### Usage
@@ -103,6 +85,60 @@ Update metadata CSV by syncing filesystem changes.
 media-tools file update-csv
 ```
 
-## Notes
+## rename-all
+Rename all files using metadata CSV mapping.
 
-- Need ffmpeg and yt-dlp in CMD Path
+### Usage
+```bash
+media-tools file rename-all
+```
+
+## convert
+Convert supported video files to MP4 using ffmpeg.
+
+### Usage
+```bash
+media-tools file convert
+```
+
+## rename
+Rename newly added files and append them into metadata CSV.
+
+### Usage
+```bash
+media-tools file rename
+```
+
+## clean
+Remove metadata from media files using exiftool.
+
+### Usage
+```bash
+media-tools file clean
+```
+
+## latest
+Copy latest tracked files into temp folder.
+
+### Usage
+```bash
+media-tools file latest
+```
+
+## organize
+Organize and synchronize media archive.
+
+### Usage
+```bash
+media-tools file organize
+```
+
+### Behavior
+* Sync metadata CSV with filesystem
+* Convert supported videos to MP4
+* Register newly converted files
+* Refresh latest temp folder
+
+## Notes
+* Need ffmpeg and yt-dlp in CMD Path
+* Need exiftool in CMD Path for `clean`

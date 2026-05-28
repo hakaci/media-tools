@@ -5,49 +5,68 @@ from media_tools.file_manager.csv_ops import (
     get_metadata_csv_list,
     get_absolute_paths_from_metadata_csv
 )
-from media_tools.file_manager.metadata_ops import create_rename_metadata_rows
-
+from media_tools.file_manager.metadata_ops import append_metadata_csv
 from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_PATHS,
-    EXTS
+    EXTS,
+    REVERSE_NAMING_CONST
 )
 
 
-# build path from metadata row
-def _build_path(row):
-    return Path(row[4]) / f"{row[1]}{row[2]}"
-
 def rename_new_files():
-    print("\nRenamer started.")
-
-    # current metadata
     metadata_rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
 
-    # existing tracked files from CSV
+    # current CSV-tracked file paths
     tracked_paths = set(
         get_absolute_paths_from_metadata_csv(metadata_rows)
     )
 
-    # all filesystem files
-    all_files = file_search(HOARD_PATHS, EXTS)
+    # actual filesystem state
+    all_files = set(file_search(HOARD_PATHS, EXTS))
 
-    # detect new files
-    new_files = set(all_files) - tracked_paths
+    # ONLY truly new files
+    new_files = all_files - tracked_paths
 
     if not new_files:
-        print("No new files to rename.\n")
         return []
 
-    # create metadata rows + rename files inside that function
-    new_rows = create_rename_metadata_rows(new_files)
+    rename_map = []
+    new_rows = []
 
-    # append to CSV handled inside metadata ops OR externally
-    renamed_paths = []
+    # stable ordering prevents collisions
+    new_files = sorted(new_files)
 
-    for row in new_rows:
-        renamed_paths.append(_build_path(row))
+    # build next metadata index safely
+    last_row = metadata_rows[-1] if len(metadata_rows) > 1 else ["0", "0"]
+    last_no = int(last_row[0])
 
-    print("Renamer finished.\n")
+    for i, file in enumerate(new_files, 1):
+        file = Path(file)
 
-    return renamed_paths
+        # safe new naming scheme
+        new_name = f"{REVERSE_NAMING_CONST - (last_no + i)}{file.suffix}"
+
+        new_path = file.with_name(new_name)
+
+        # apply rename
+        safe_rename(file, new_name)
+
+        # build metadata row
+        new_rows.append([
+            str(last_no + i),
+            new_name,
+            file.suffix,
+            str(int(file.stat().st_ctime)),
+            str(file.parent)
+        ])
+
+        rename_map.append({
+            "old": file,
+            "new": new_path
+        })
+
+    # append ONLY new metadata
+    append_metadata_csv(new_rows, HOARD_METADATA_CSV_PATH)
+
+    return rename_map

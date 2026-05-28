@@ -33,9 +33,9 @@ def clean_metadata(paths):
 
     temp_folder.mkdir(exist_ok=True)
 
-    # move files to temp
     temp_paths = []
 
+    # move files to temp
     for file in paths:
         file = Path(file)
         temp_path = temp_folder / file.name

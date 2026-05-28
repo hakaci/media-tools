@@ -44,7 +44,7 @@ def run(args):
     sub.add_parser("latest")
 
     # full workflow
-    sub.add_parser("pipeline")
+    sub.add_parser("organize")
 
     parsed = parser.parse_args(args)
 
@@ -69,20 +69,19 @@ def run(args):
         print("CSV updated")
 
     # -------------------------
-    # RENAME ALL
+    # RENAME ALL FILES
     # -------------------------
 
     elif parsed.cmd == "rename-all":
-        rows = get_metadata_csv_list(
-            HOARD_METADATA_CSV_PATH
-        )[1:]
+        rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)[1:]
 
-        rename_all_from_metadata(
-            rows,
-            safe_rename
-        )
+        rename_all_from_metadata(rows, safe_rename)
 
-        print("Rename completed")
+        # rebuild CSV after destructive rename
+        files = file_search(HOARD_PATHS, EXTS)
+        create_metadata_csv(files)
+
+        print("Full rename + CSV reset completed")
 
     # -------------------------
     # CONVERT VIDEOS
@@ -113,26 +112,20 @@ def run(args):
         copy_last_files()
 
     # -------------------------
-    # FULL PIPELINE
+    # ORGANIZER
     # -------------------------
 
-    elif parsed.cmd == "pipeline":
-        # sync metadata csv first
-        update_metadata_csv()
-
+    elif parsed.cmd == "organize":
         # convert videos
         convert_videos()
 
-        # rename newly added files
-        renamed_files = rename_new_files()
+        # sync current filesystem state
+        update_metadata_csv()
 
-        # clean metadata from renamed files
-        clean_metadata(renamed_files)
-
-        # copy latest files to temp folder
+        # refresh latest temp folder
         copy_last_files()
 
-        print("Pipeline completed")
+        print("Organizer completed")
 
     else:
         parser.print_help()

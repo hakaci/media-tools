@@ -95,7 +95,6 @@ def build_path(row):
 
 def rename_all_from_metadata(rows, safe_rename):
     # rename using reverse naming rule
-
     for row in rows:
         old_path = build_path(row)
 

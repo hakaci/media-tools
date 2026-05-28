@@ -42,7 +42,7 @@ def convert_videos():
         # randomized output name
         output_name = (
             file.parent /
-            f"{file.stem}_{randint(1000, 9999)}.mp4"
+            f"{file.stem}_{randint(10000, 99999)}.mp4"
         )
 
         # ffmpeg command

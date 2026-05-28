@@ -7,7 +7,8 @@ from media_tools.file_manager.csv_ops import (
     get_metadata_csv_list,
     get_last_row_of_csv,
     append_metadata_csv,
-    write_metadata_csv
+    write_metadata_csv,
+    get_absolute_paths_from_metadata_csv
 )
 from media_tools.file_manager.fs_ops import (
     file_search,
@@ -56,7 +57,43 @@ def create_rename_metadata_rows(files):
 
     return metadataRows
 
-def update_metadata_csv():
+def apply_metadata_sync(sync_data):
+    """
+    Applies filesystem/CSV reconciliation.
+    """
+
+    csv_rows = sync_data["csv_rows"]
+    deleted = sync_data["deleted"]
+    new = sync_data["new"]
+
+    # -------------------------
+    # 1. REMOVE DELETED
+    # -------------------------
+    deleted_names = {p.stem for p in deleted}
+
+    cleaned_csv = []
+    dropped = []
+
+    for row in csv_rows:
+        if row[1] in deleted_names:
+            dropped.append(row)
+        else:
+            cleaned_csv.append(row)
+
+    # -------------------------
+    # 2. ADD NEW FILES
+    # -------------------------
+    if new:
+        new_rows = create_rename_metadata_rows(new)
+        cleaned_csv.extend(new_rows)
+
+    # -------------------------
+    # 3. WRITE OUTPUTS
+    # -------------------------
+    write_metadata_csv(cleaned_csv, HOARD_METADATA_CSV_PATH)
+
+    if dropped:
+        append_metadata_csv(dropped, HOARD_DROPPED_METADATA_CSV_PATH)
     dropped_metadata = []
 
     # normalize extensions first
@@ -67,9 +104,6 @@ def update_metadata_csv():
 
     # current metadata rows
     metadata_rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
-
-    # keep header
-    header = metadata_rows[0]
 
     # data rows only
     rows = metadata_rows[1:]
@@ -150,25 +184,72 @@ def update_metadata_csv():
     )
     
 def build_metadata_rows(files):
-    # convert files → csv rows
+    """
+    Build CSV rows sorted by creation time (oldest → newest).
+    """
+
+    # create (timestamp, file) pairs
+    timestamped_files = [
+        (int(os.path.getctime(f)), f)
+        for f in files
+    ]
+
+    # SORT BY CREATION TIME
+    timestamped_files.sort(key=itemgetter(0))
+
     rows = []
 
-    for i, f in enumerate(files, 1):
+    for i, (timestamp, f) in enumerate(timestamped_files, 1):
         rows.append([
             i,
             f.stem,
             f.suffix,
-            int(os.path.getctime(f)),
+            timestamp,
             str(f.parent)
         ])
 
     return rows
 
-
 def create_metadata_csv(files):
-    # write full CSV
+    """
+    Full CSV rebuild (authoritative snapshot).
+    """
+
+    rows = build_metadata_rows(files)
+
     with open(HOARD_METADATA_CSV_PATH, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-
         w.writerow(FIELDS)
-        w.writerows(build_metadata_rows(files))
+        w.writerows(rows)
+
+def sync_metadata_state():
+    """
+    Compare filesystem vs CSV and return diff state.
+    """
+    csv_rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
+
+    fs_files = set(file_search(HOARD_PATHS, EXTS))
+
+    csv_paths = set(
+        map(Path, get_absolute_paths_from_metadata_csv(csv_rows))
+    )
+
+    # 1. deleted files (in CSV, not in FS)
+    deleted = csv_paths - fs_files
+
+    # 2. new files (in FS, not in CSV)
+    new = fs_files - csv_paths
+
+    # 3. existing files
+    stable = fs_files & csv_paths
+
+    return {
+        "csv_rows": csv_rows,
+        "deleted": deleted,
+        "new": new,
+        "stable": stable
+    }
+
+def update_metadata_csv():
+    sync_data = sync_metadata_state()
+    apply_metadata_sync(sync_data)
