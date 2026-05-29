@@ -101,3 +101,28 @@ def rename_all_from_metadata(rows, safe_rename):
         new_name = f"{REVERSE_NAMING_CONST - int(row[0])}{old_path.suffix}"
 
         safe_rename(old_path, new_name)
+        
+def replace_strings_in_filenames(
+    files,
+    targets,
+    replacement
+):
+    renamed = []
+
+    for file_path in files:
+        new_name = file_path.name
+
+        for target in targets:
+            new_name = new_name.replace(
+                target,
+                replacement
+            )
+
+        if new_name != file_path.name:
+            new_path = file_path.with_name(new_name)
+
+            file_path.rename(new_path)
+
+            renamed.append((file_path, new_path))
+
+    return renamed

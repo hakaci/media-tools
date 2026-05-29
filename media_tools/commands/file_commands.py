@@ -8,7 +8,8 @@ from media_tools.file_manager.last_files import copy_last_files
 from media_tools.file_manager.fs_ops import (
     file_search,
     rename_all_from_metadata,
-    safe_rename
+    safe_rename,
+    replace_strings_in_filenames
 )
 
 from media_tools.file_manager.metadata_ops import (
@@ -42,6 +43,20 @@ def run(args):
     sub.add_parser("rename")
     sub.add_parser("clean")
     sub.add_parser("latest")
+    
+    # rename helpers
+    replace_parser = sub.add_parser("replace")
+    replace_parser.add_argument(
+        "targets",
+        nargs="+",
+        help="Strings to replace"
+    )
+    replace_parser.add_argument(
+        "--with",
+        dest="replacement",
+        required=True,
+        help="Replacement string"
+    )
 
     # full workflow
     sub.add_parser("organize")
@@ -110,6 +125,22 @@ def run(args):
 
     elif parsed.cmd == "latest":
         copy_last_files()
+
+    # -------------------------
+    # REPLACE STRINGS
+    # -------------------------
+
+    elif parsed.cmd == "replace":
+
+        files = file_search(HOARD_PATHS, EXTS)
+
+        renamed = replace_strings_in_filenames(
+            files,
+            parsed.targets,
+            parsed.replacement
+        )
+
+        print(f"Renamed {len(renamed)} files")
 
     # -------------------------
     # ORGANIZER

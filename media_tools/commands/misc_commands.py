@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from media_tools.video_splitter import split_video
+from media_tools.misc.video_splitter import split_video
 from media_tools.constants import (
     DEFAULT_SPLIT_VIDEO_TIMESTAMPS_PATH,
     DEFAULT_SPLIT_OUTPUT_FOLDER
@@ -10,7 +10,7 @@ from media_tools.constants import (
 
 def run(args):
     parser = argparse.ArgumentParser(
-        prog="media-tools split",
+        prog="media-tools misc split-video",
         description="Split media file using timestamps.",
         formatter_class=argparse.RawTextHelpFormatter
     )
