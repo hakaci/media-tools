@@ -5,6 +5,7 @@ from media_tools.file_manager.converter import convert_videos
 from media_tools.file_manager.renamer import rename_new_files
 from media_tools.file_manager.metadata_cleaner import clean_metadata
 from media_tools.file_manager.last_files import copy_last_files
+from media_tools.file_manager.mp3_service import run_mp3_conversion
 
 from media_tools.file_manager.fs_ops import (
     file_search,
@@ -26,7 +27,9 @@ from media_tools.file_manager.csv_ops import (
 from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_PATHS,
-    EXTS
+    EXTS,
+    CONVERT_MP3_CSV_PATH,
+    CONVERT_MP3_OUTPUT_PATH
 )
 
 
@@ -65,6 +68,16 @@ def run(args):
     remove_dash_parser.add_argument(
         "path",
         help="Folder path to process"
+    )
+    
+    # Convert to MP3
+    convert_mp3_parser = sub.add_parser(
+    "convert-mp3",
+    help="Convert media files to MP3 using ffmpeg"
+    )
+    convert_mp3_parser.add_argument(
+        "path",
+        help="Folder path to scan and convert"
     )
 
     # full workflow
@@ -167,6 +180,24 @@ def run(args):
         renamed = remove_until_dash(files)
 
         print(f"Renamed {len(renamed)} files")
+
+    # -------------------------
+    # CONVERT MP3
+    # -------------------------
+
+    elif parsed.cmd == "convert-mp3":
+        folder_path = Path(parsed.path)
+
+        # run full conversion pipeline
+        converted = run_mp3_conversion(
+            folder_path,
+            [".mp4", ".webm", ".mp3"],
+            CONVERT_MP3_CSV_PATH,
+            CONVERT_MP3_OUTPUT_PATH
+        )
+
+        print(f"\nsuccessfully converted {len(converted)} files")
+        print("\nMP3 converter finished\n")
 
     # -------------------------
     # ORGANIZER

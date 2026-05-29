@@ -143,3 +143,51 @@ def remove_until_dash(files):
         renamed.append((file, new_path))
 
     return renamed
+
+import subprocess
+from pathlib import Path
+
+
+def encode_to_mp3(files, temp_path):
+    converted = []
+
+    for file in files:
+        # new file name
+        new_file_name = f"{file.stem}.mp3"
+
+        # temp output directory (preserve folder structure)
+        output_dir = Path(temp_path) / file.parent.name
+
+        # create folder if not exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # final output path
+        output_path = output_dir / new_file_name
+
+        # ffmpeg command
+        args = [
+            "ffmpeg",
+            "-i", str(file),
+            "-vn",
+            "-acodec", "libmp3lame",
+            "-ab", "128k",
+            str(output_path)
+        ]
+
+        # execute ffmpeg
+        process = subprocess.run(args)
+
+        # success case
+        if process.returncode == 0:
+            print(f"successfully converted {file}")
+            converted.append(file)
+
+        # failure case
+        else:
+            print(f"error converting {file}, errno: {process.returncode}")
+
+            # remove corrupted output if exists
+            if output_path.exists():
+                output_path.unlink()
+
+    return converted

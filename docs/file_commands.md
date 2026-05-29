@@ -86,6 +86,14 @@ Remove everything before and including the first "-" in filenames.
 media-tools file remove-dash <folder_path>
 ```
 
+## convert-mp3
+Convert supported media files to MP3 using ffmpeg.
+
+### Usage
+```bash
+media-tools file convert-mp3 <folder_path>
+```
+
 ## Notes
 - Need ffmpeg in CMD Path
 - Need exiftool in CMD Path
