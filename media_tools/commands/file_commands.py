@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 from media_tools.file_manager.converter import convert_videos
 from media_tools.file_manager.renamer import rename_new_files
@@ -9,7 +10,8 @@ from media_tools.file_manager.fs_ops import (
     file_search,
     rename_all_from_metadata,
     safe_rename,
-    replace_strings_in_filenames
+    replace_strings_in_filenames,
+    remove_until_dash
 )
 
 from media_tools.file_manager.metadata_ops import (
@@ -56,6 +58,13 @@ def run(args):
         dest="replacement",
         required=True,
         help="Replacement string"
+    )
+    
+    # Remove until - in file names
+    remove_dash_parser = sub.add_parser("remove-dash")
+    remove_dash_parser.add_argument(
+        "path",
+        help="Folder path to process"
     )
 
     # full workflow
@@ -139,6 +148,23 @@ def run(args):
             parsed.targets,
             parsed.replacement
         )
+
+        print(f"Renamed {len(renamed)} files")
+
+    # -------------------------
+    # REMOVE UNTIL DASH
+    # -------------------------
+
+    elif parsed.cmd == "remove-dash":
+
+        path = Path(parsed.path)
+
+        files = file_search(
+            [path],
+            [".m4a", ".mp4", ".webm", ".mp3", ".m4a"]
+        )
+
+        renamed = remove_until_dash(files)
 
         print(f"Renamed {len(renamed)} files")
 

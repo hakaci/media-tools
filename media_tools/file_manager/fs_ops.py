@@ -126,3 +126,20 @@ def replace_strings_in_filenames(
             renamed.append((file_path, new_path))
 
     return renamed
+
+
+def remove_until_dash(files):
+    renamed = []
+
+    for file in files:
+        file_name = file.name
+
+        if "-" in file_name:
+            new_name = file_name.split("-", 1)[1].strip()
+        else:
+            continue  # no change
+
+        new_path = rename_a_file_given_name(file, Path(new_name))
+        renamed.append((file, new_path))
+
+    return renamed
