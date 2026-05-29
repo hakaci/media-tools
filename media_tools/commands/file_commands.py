@@ -17,7 +17,8 @@ from media_tools.file_manager.fs_ops import (
 
 from media_tools.file_manager.metadata_ops import (
     create_metadata_csv,
-    update_metadata_csv
+    update_metadata_csv,
+    run_exif_error_scan
 )
 
 from media_tools.file_manager.csv_ops import (
@@ -42,6 +43,14 @@ def run(args):
     sub.add_parser("create-csv")
     sub.add_parser("update-csv")
     sub.add_parser("rename-all")
+    exif_error_parser = sub.add_parser(
+    "exif-errors",
+    help="Find and move files that cause exiftool errors"
+    )
+    exif_error_parser.add_argument(
+        "path",
+        help="Folder path to scan"
+    )
 
     # automation commands
     sub.add_parser("convert")
@@ -119,6 +128,17 @@ def run(args):
         create_metadata_csv(files)
 
         print("Full rename + CSV reset completed")
+
+    # -------------------------
+    # RENAME ALL FILES
+    # -------------------------
+
+    elif parsed.cmd == "exif-errors":
+        path = Path(parsed.path)
+
+        result = run_exif_error_scan(path)
+
+        print(f"Moved {result['moved']} broken files")
 
     # -------------------------
     # CONVERT VIDEOS

@@ -94,6 +94,14 @@ Convert supported media files to MP3 using ffmpeg.
 media-tools file convert-mp3 <folder_path>
 ```
 
+## exif-errors
+Detect files that fail metadata cleaning and move them to broken files folder.
+
+### Usage
+```bash
+media-tools file exif-errors <folder_path>
+```
+
 ## Notes
 - Need ffmpeg in CMD Path
 - Need exiftool in CMD Path

@@ -1,6 +1,7 @@
 from genericpath import getctime
 from pathlib import Path
 from operator import itemgetter
+import subprocess
 import csv
 import os.path
 from media_tools.file_manager.csv_ops import (
@@ -17,6 +18,7 @@ from media_tools.file_manager.fs_ops import (
 )
 
 from media_tools.constants import (
+    HOARD_BROKEN_VIDS_PATH,
     HOARD_METADATA_CSV_PATH,
     HOARD_DROPPED_METADATA_CSV_PATH,
     HOARD_PATHS,
@@ -253,3 +255,54 @@ def sync_metadata_state():
 def update_metadata_csv():
     sync_data = sync_metadata_state()
     apply_metadata_sync(sync_data)
+    
+def get_absolute_paths_from_exif_errors(output):
+    """
+    Extract absolute file paths from exiftool error output.
+    """
+    absolute_paths = []
+
+    for line in output.splitlines():
+
+        parts = line.split("- ", 1)
+
+        if len(parts) == 2:
+            absolute_paths.append(Path(parts[1].strip()))
+
+    return absolute_paths
+
+
+def run_exif_error_scan(path):
+    """
+    Run exiftool, detect errors, move broken files.
+    """
+    args = [
+        "exiftool",
+        "-r",
+        "-overwrite_original",
+        "-all=",
+        str(path)
+    ]
+
+    process = subprocess.run(args, capture_output=True, text=True)
+
+    print(f"\nerr:\n{process.stderr}")
+    print(f"\nout:\n{process.stdout}")
+
+    broken_count = 0
+
+    if process.returncode != 0:
+
+        broken_paths = get_absolute_paths_from_exif_errors(
+            process.stderr
+        )
+
+        for p in broken_paths:
+            new_destination = HOARD_BROKEN_VIDS_PATH / p.name
+            p.replace(new_destination)
+            broken_count += 1
+
+    return {
+        "moved": broken_count,
+        "success": process.returncode == 0
+    }
