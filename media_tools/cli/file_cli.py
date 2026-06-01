@@ -32,6 +32,9 @@ from media_tools.constants import (
     CONVERT_MP3_OUTPUT_PATH,
 )
 
+COMMAND_NAME = "file"
+DESCRIPTION = "File operations: rename, convert, clean, organize"
+
 
 def run(args):
     parser = argparse.ArgumentParser(prog="media-tools file")
@@ -57,11 +60,11 @@ def run(args):
     replace_parser = sub.add_parser("replace")
     replace_parser.add_argument("path")
     replace_parser.add_argument("replacements", nargs="+")
-    
+
     remove_prefix_parser = sub.add_parser("remove-prefix")
     remove_prefix_parser.add_argument("path")
     remove_prefix_parser.add_argument("prefix")
-    
+
     remove_suffix_parser = sub.add_parser("remove-suffix")
     remove_suffix_parser.add_argument("path")
     remove_suffix_parser.add_argument("suffix")

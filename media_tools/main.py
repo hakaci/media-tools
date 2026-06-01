@@ -1,40 +1,35 @@
 import sys
+import argparse
 
-from media_tools.commands.youtube_commands import run as youtube_run
-from media_tools.commands.file_commands import run as file_run
-from media_tools.commands.misc_commands import run as misc_run
+from media_tools.cli_helpers import register_commands, run_command, print_global_help
 
-COMMANDS = {
-    "youtube": youtube_run,
-    "file": file_run,
-    "misc": misc_run,
-}
+from media_tools.cli_discovery import discover_commands
 
 
 def main():
-    # no command provided
-    if len(sys.argv) < 2:
-        print("Available commands:")
+    parser = argparse.ArgumentParser(
+        prog="media-tools",
+        description="Media Tools CLI",
+        add_help=False,
+    )
+    # auto-load all commands
+    COMMANDS = discover_commands()
 
-        for cmd in COMMANDS:
-            print(f"  - {cmd}")
+    parser = register_commands(parser, COMMANDS)
+
+    args_list = sys.argv[1:]
+
+    if not args_list or args_list[0] in ("-h", "--help"):
+        print_global_help(parser)
         return
 
-    cmd = sys.argv[1]
-    args = sys.argv[2:]
+    args, unknown = parser.parse_known_args()
 
-    handler = COMMANDS.get(cmd)
-
-    # unknown command
-    if handler is None:
-        print(f"Unknown command: {cmd}")
-        print("Available commands:", ", ".join(COMMANDS.keys()))
+    if not args.command:
+        print_global_help(parser)
         return
-    try:
-        handler(args)
 
-    except Exception as e:
-        print(f"Error in '{cmd}': {e}")
+    run_command(args, unknown)
 
 
 if __name__ == "__main__":

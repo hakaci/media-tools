@@ -9,6 +9,9 @@ from media_tools.youtube.downloader import download_youtube_videos
 
 from media_tools.youtube.ui import choose_channel
 
+COMMAND_NAME = "youtube"
+DESCRIPTION = "Download and process YouTube media"
+
 
 def run(args):
     parser = argparse.ArgumentParser(
