@@ -2,7 +2,6 @@ import sys
 
 from media_tools.cli import file_cli, misc_cli, youtube_cli
 
-
 COMMANDS = {
     "file": file_cli.run,
     "misc": misc_cli.run,
