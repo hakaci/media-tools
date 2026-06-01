@@ -38,7 +38,15 @@ or
 python -m media_tools.main
 ```
 
-## Commands
-- file → file management (rename, convert, clean, organize)
-- youtube → download & processing
-- misc → utilities
+## Help
+Show top-level commands:
+
+```bash
+media-tools -h
+```
+
+Show command-specific help:
+
+```bash
+media-tools <command> -h
+```
