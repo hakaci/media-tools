@@ -187,24 +187,37 @@ def replace_strings_in_filenames(
         return
 
     replacements = []
-
     for i in range(0, len(replacement_args), 2):
         replacements.append((replacement_args[i], replacement_args[i + 1]))
 
     for path in paths:
 
-        if path.is_dir() and not include_folders:
+        is_dir = path.is_dir()
+
+        if is_dir and not include_folders:
             continue
 
-        new_name = path.name
+        # split file vs folder handling
+        if is_dir:
+            name = path.name
+            ext = ""
+        else:
+            name = path.stem
+            ext = path.suffix
+
+        new_name = name
 
         for old, new in replacements:
             new_name = new_name.replace(old, new)
 
+        new_name = new_name + ext
+
         if new_name == path.name:
             continue
 
-        path.rename(path.with_name(new_name))
+        new_path = path.with_name(new_name)
+
+        path.rename(new_path)
 
         print(f"Renamed: {path.name} -> {new_name}")
 
@@ -216,20 +229,27 @@ def remove_prefix_from_filenames(
 ):
     for path in paths:
 
-        if path.is_dir() and not include_folders:
+        is_dir = path.is_dir()
+
+        if is_dir and not include_folders:
             continue
 
-        new_name = path.name
+        if is_dir:
+            name = path.name
+            suffix = ""
+        else:
+            name = path.stem
+            suffix = path.suffix
 
-        if new_name.startswith(prefix):
-            new_name = new_name[len(prefix) :]
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+
+        new_name = name + suffix
 
         if new_name == path.name:
             continue
 
-        new_path = path.with_name(new_name)
-
-        path.rename(new_path)
+        path.rename(path.with_name(new_name))
 
         print(f"Renamed: {path.name} -> {new_name}")
 
@@ -241,19 +261,26 @@ def remove_suffix_from_filenames(
 ):
     for path in paths:
 
-        if path.is_dir() and not include_folders:
+        is_dir = path.is_dir()
+
+        if is_dir and not include_folders:
             continue
 
-        new_name = path.name
+        if is_dir:
+            name = path.name
+            ext = ""
+        else:
+            name = path.stem
+            ext = path.suffix
 
-        if new_name.endswith(suffix):
-            new_name = new_name[: -len(suffix)]
+        if suffix and name.endswith(suffix):
+            name = name[:-len(suffix)]
+
+        new_name = name + ext
 
         if new_name == path.name:
             continue
 
-        new_path = path.with_name(new_name)
-
-        path.rename(new_path)
+        path.rename(path.with_name(new_name))
 
         print(f"Renamed: {path.name} -> {new_name}")
