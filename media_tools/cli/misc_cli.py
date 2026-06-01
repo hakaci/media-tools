@@ -42,7 +42,6 @@ Misc Commands:
 
 
 def run(args):
-
     if not args:
         print_misc_help()
         return
@@ -54,12 +53,12 @@ def run(args):
         print_misc_help()
         return
 
-    if len(args) == 1 or args[1] in ("-h", "--help"):
+    if len(args) == 1:
         print(SPLIT_VIDEO_HELP)
         return
 
     parser = argparse.ArgumentParser(
-        prog="media-tools misc split-video", add_help=False
+        prog="media-tools misc split-video"
     )
 
     parser.add_argument("video_path")

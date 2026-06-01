@@ -6,40 +6,75 @@ from media_tools.youtube.append_metadata import (
 )
 
 from media_tools.youtube.downloader import download_youtube_videos
-
 from media_tools.youtube.ui import choose_channel
 
 COMMAND_NAME = "youtube"
 DESCRIPTION = "Download and process YouTube media"
 
 
+YOUTUBE_HELP = """
+YouTube Commands:
+
+  metadata     Append video or playlist metadata into CSV
+  download     Download videos from metadata CSV
+"""
+
+
+METADATA_HELP = """
+Append YouTube video metadata into CSV.
+
+Usage:
+  media-tools youtube metadata [--url URL ...] [--playlist URL]
+
+Options:
+  --url        One or more video URLs
+  --playlist   Playlist or channel URL
+
+Examples:
+  media-tools youtube metadata --url https://youtube.com/watch?v=xxxx
+  media-tools youtube metadata --url url1 url2 url3
+  media-tools youtube metadata --playlist https://youtube.com/playlist?list=xxxx
+"""
+
+
+DOWNLOAD_HELP = """
+Download YouTube videos from metadata CSV.
+
+Usage:
+  media-tools youtube download [--channel NAME] [--limit N]
+
+Options:
+  --channel   Channel name from CSV (default: interactive)
+  --limit     Number of videos to download (default: 10)
+
+Examples:
+  media-tools youtube download --channel "Music"
+  media-tools youtube download --channel "Music" --limit 20
+  media-tools youtube download
+"""
+
+def print_youtube_help():
+    print(YOUTUBE_HELP)
+
 def run(args):
-    parser = argparse.ArgumentParser(
-        prog="media-tools youtube", description="YouTube tools"
-    )
 
-    subparsers = parser.add_subparsers(dest="command")
+    if not args:
+        print_youtube_help()
+        return
 
-    # -------------------------
-    # metadata command
-    # -------------------------
-    meta = subparsers.add_parser("metadata", help="Fetch and store video metadata")
-    meta.add_argument("--url", nargs="+", help="One or more video URLs")
-    meta.add_argument("--playlist", help="Playlist or channel URL")
+    cmd = args[0]
 
-    # -------------------------
-    # download command
-    # -------------------------
-    dl = subparsers.add_parser("download", help="Download videos from CSV")
-    dl.add_argument("--channel", help="Channel name from CSV")
-    dl.add_argument("--limit", type=int, default=None)
+    if cmd == "metadata":
 
-    parsed = parser.parse_args(args)
+        if len(args) == 1:
+            print(METADATA_HELP)
+            return
 
-    # -------------------------
-    # ROUTING
-    # -------------------------
-    if parsed.command == "metadata":
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--url", nargs="+")
+        parser.add_argument("--playlist")
+
+        parsed = parser.parse_args(args[1:])
 
         if parsed.url:
             append_single_video_metadata(parsed.url)
@@ -49,26 +84,31 @@ def run(args):
             append_playlist_metadata(parsed.playlist)
             return
 
-        parser.parse_args(["metadata", "--help"])
+        print(METADATA_HELP)
         return
 
-    if parsed.command == "download":
+    if cmd == "download":
 
-        channel = parsed.channel
+        if len(args) == 1:
+            print(DOWNLOAD_HELP)
+            return
 
-        if not channel:
-            channel = choose_channel()
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--channel")
+        parser.add_argument("--limit", type=int)
+
+        parsed = parser.parse_args(args[1:])
+
+        channel = parsed.channel or choose_channel()
 
         limit = parsed.limit
-
         if limit is None:
             try:
-                limit = int(input("\nEnter download limit: "))
+                limit = int(input("Enter download limit: "))
             except ValueError:
-                print("Invalid number, using default 10")
-                limit = 5
+                limit = 10
 
         download_youtube_videos(channel_name=channel, limit=limit)
         return
 
-    parser.print_help()
+    print_youtube_help()
