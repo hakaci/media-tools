@@ -4,13 +4,10 @@ import shutil
 from media_tools.file_manager.fs_ops import file_search
 from media_tools.file_manager.csv_ops import (
     get_file_path_from_name,
-    get_metadata_csv_list
+    get_metadata_csv_list,
 )
 
-from media_tools.constants import (
-    HOARD_TEMP_PATH,
-    HOARD_METADATA_CSV_PATH
-)
+from media_tools.constants import HOARD_TEMP_PATH, HOARD_METADATA_CSV_PATH
 
 EXTS = [".mp4", ".png", ".jpg", ".jpeg", ".webm", ".mov", ".gif", ".webp"]
 
@@ -55,10 +52,7 @@ def copy_last_files():
 
     last_rows = metadata[-ITEM_AMOUNT:]
 
-    last_paths = [
-        Path(row[4]) / f"{row[1]}{row[2]}"
-        for row in last_rows
-    ]
+    last_paths = [Path(row[4]) / f"{row[1]}{row[2]}" for row in last_rows]
 
     get_last_files(last_paths)
 

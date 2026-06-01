@@ -3,14 +3,14 @@ from pathlib import Path
 from media_tools.file_manager.fs_ops import file_search, safe_rename
 from media_tools.file_manager.csv_ops import (
     get_metadata_csv_list,
-    get_absolute_paths_from_metadata_csv
+    get_absolute_paths_from_metadata_csv,
 )
 from media_tools.file_manager.metadata_ops import append_metadata_csv
 from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_PATHS,
     EXTS,
-    REVERSE_NAMING_CONST
+    REVERSE_NAMING_CONST,
 )
 
 
@@ -18,9 +18,7 @@ def rename_new_files():
     metadata_rows = get_metadata_csv_list(HOARD_METADATA_CSV_PATH)
 
     # current CSV-tracked file paths
-    tracked_paths = set(
-        get_absolute_paths_from_metadata_csv(metadata_rows)
-    )
+    tracked_paths = set(get_absolute_paths_from_metadata_csv(metadata_rows))
 
     # actual filesystem state
     all_files = set(file_search(HOARD_PATHS, EXTS))
@@ -53,18 +51,17 @@ def rename_new_files():
         safe_rename(file, new_name)
 
         # build metadata row
-        new_rows.append([
-            str(last_no + i),
-            new_name,
-            file.suffix,
-            str(int(file.stat().st_ctime)),
-            str(file.parent)
-        ])
+        new_rows.append(
+            [
+                str(last_no + i),
+                new_name,
+                file.suffix,
+                str(int(file.stat().st_ctime)),
+                str(file.parent),
+            ]
+        )
 
-        rename_map.append({
-            "old": file,
-            "new": new_path
-        })
+        rename_map.append({"old": file, "new": new_path})
 
     # append ONLY new metadata
     append_metadata_csv(new_rows, HOARD_METADATA_CSV_PATH)

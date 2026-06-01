@@ -5,13 +5,10 @@ import yt_dlp
 
 from media_tools.youtube.csv_store import (
     get_metadata_csv_list,
-    get_false_download_status_rows
+    get_false_download_status_rows,
 )
 
-from media_tools.constants import (
-    HOARD_YOUTUBE_CSV_PATH,
-    HOARD_YOUTUBE_DOWNLOAD_PATH
-)
+from media_tools.constants import HOARD_YOUTUBE_CSV_PATH, HOARD_YOUTUBE_DOWNLOAD_PATH
 
 
 def download_youtube_videos(channel_name, limit):
@@ -30,19 +27,15 @@ def download_youtube_videos(channel_name, limit):
             filtered_rows.append(row)
 
     # Get limited amount of non-downloaded videos
-    filtered_rows = get_false_download_status_rows(
-        filtered_rows,
-        limit
-    )
+    filtered_rows = get_false_download_status_rows(filtered_rows, limit)
 
     # yt-dlp configuration
     ydl_opts = {
-        'format_sort': ['ext', 'res:1080', '+vbr'],
-
+        "format_sort": ["ext", "res:1080", "+vbr"],
         # Output filename format
-        'outtmpl': join(
+        "outtmpl": join(
             HOARD_YOUTUBE_DOWNLOAD_PATH,
-            '%(upload_date)s - %(title)s - %(channel)s.%(ext)s'
+            "%(upload_date)s - %(title)s - %(channel)s.%(ext)s",
         ),
     }
 
@@ -75,12 +68,7 @@ def download_youtube_videos(channel_name, limit):
                 print(e)
 
     # Save updated CSV rows
-    with open(
-        HOARD_YOUTUBE_CSV_PATH,
-        mode="w",
-        newline="",
-        encoding="utf-8"
-    ) as file:
+    with open(HOARD_YOUTUBE_CSV_PATH, mode="w", newline="", encoding="utf-8") as file:
 
         writer = csv.writer(file)
 

@@ -1,12 +1,18 @@
 import ffmpeg
 import os
-from media_tools.utils.general_utils import parse_timestamps, convert_time_to_seconds, sanitize_filename
+from media_tools.utils.general_utils import (
+    parse_timestamps,
+    convert_time_to_seconds,
+    sanitize_filename,
+)
 
 
 def split_video(video_path, timestamps_path, include_original_name, output_folder):
     """Splits video into individual videos based on timestamps."""
     os.makedirs(output_folder, exist_ok=True)  # Ensure output directory exists
-    original_name = os.path.splitext(os.path.basename(video_path))[0]  # Extract original_name from video_path
+    original_name = os.path.splitext(os.path.basename(video_path))[
+        0
+    ]  # Extract original_name from video_path
 
     # Return list of timestamps and segment names
     timestamps = parse_timestamps(timestamps_path)
@@ -27,7 +33,7 @@ def split_video(video_path, timestamps_path, include_original_name, output_folde
             safe_video_name = sanitize_filename(f"{original_name} - {segment_name}")
         else:
             safe_video_name = sanitize_filename(segment_name)
-        
+
         output_file = os.path.join(output_folder, f"{safe_video_name}.mp4")
 
         try:
@@ -36,17 +42,17 @@ def split_video(video_path, timestamps_path, include_original_name, output_folde
 
             if duration:
                 (
-                    input_stream
-                    .output(output_file, ss=start_seconds, t=duration, codec="copy")
-                    .run(overwrite_output=True)
+                    input_stream.output(
+                        output_file, ss=start_seconds, t=duration, codec="copy"
+                    ).run(overwrite_output=True)
                 )
             else:
                 (
-                    input_stream
-                    .output(output_file, ss=start_seconds, codec="copy")
-                    .run(overwrite_output=True)
+                    input_stream.output(
+                        output_file, ss=start_seconds, codec="copy"
+                    ).run(overwrite_output=True)
                 )
-            
+
             print(f"Saved: {output_file}")
         except ffmpeg.Error as e:
             print(f"FFmpeg error while processing {segment_name}: {e}")

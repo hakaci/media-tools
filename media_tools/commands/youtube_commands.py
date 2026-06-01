@@ -2,7 +2,7 @@ import argparse
 
 from media_tools.youtube.append_metadata import (
     append_single_video_metadata,
-    append_playlist_metadata
+    append_playlist_metadata,
 )
 
 from media_tools.youtube.downloader import download_youtube_videos
@@ -12,8 +12,7 @@ from media_tools.youtube.ui import choose_channel
 
 def run(args):
     parser = argparse.ArgumentParser(
-        prog="media-tools youtube",
-        description="YouTube tools"
+        prog="media-tools youtube", description="YouTube tools"
     )
 
     subparsers = parser.add_subparsers(dest="command")
@@ -56,7 +55,7 @@ def run(args):
 
         if not channel:
             channel = choose_channel()
-            
+
         limit = parsed.limit
 
         if limit is None:
@@ -64,12 +63,9 @@ def run(args):
                 limit = int(input("\nEnter download limit: "))
             except ValueError:
                 print("Invalid number, using default 10")
-                limit = 5        
+                limit = 5
 
-        download_youtube_videos(
-            channel_name=channel,
-            limit=limit
-        )
+        download_youtube_videos(channel_name=channel, limit=limit)
         return
 
     parser.print_help()

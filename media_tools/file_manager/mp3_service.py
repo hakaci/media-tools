@@ -24,10 +24,7 @@ def get_new_file_paths(files, csv_file_path):
     new_file_names = set(file_names) - converted_file_names
 
     # map names to absolute paths
-    file_path_dict = {
-        file_path.name: file_path
-        for file_path in files
-    }
+    file_path_dict = {file_path.name: file_path for file_path in files}
 
     # resolve absolute paths
     new_file_paths = [
@@ -39,12 +36,7 @@ def get_new_file_paths(files, csv_file_path):
     return new_file_paths
 
 
-def run_mp3_conversion(
-    folder_path,
-    extensions,
-    csv_file_path,
-    temp_path
-):
+def run_mp3_conversion(folder_path, extensions, csv_file_path, temp_path):
 
     # scan folder for media files
     files = file_search([folder_path], extensions)

@@ -2,10 +2,7 @@ import csv
 from os.path import exists
 
 from media_tools.youtube.extractor import fetch_video_metadata
-from media_tools.youtube.csv_store import (
-    FIELDNAMES,
-    get_relevant_video_infos
-)
+from media_tools.youtube.csv_store import FIELDNAMES, get_relevant_video_infos
 
 from media_tools.constants import HOARD_YOUTUBE_CSV_PATH
 

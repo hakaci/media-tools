@@ -78,14 +78,6 @@ Organize and synchronize media archive.
 media-tools file organize
 ```
 
-## remove-dash
-Remove everything before and including the first "-" in filenames.
-
-### Usage
-```bash
-media-tools file remove-dash <folder_path>
-```
-
 ## convert-mp3
 Convert supported media files to MP3 using ffmpeg.
 

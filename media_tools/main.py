@@ -28,16 +28,14 @@ def main():
     # unknown command
     if handler is None:
         print(f"Unknown command: {cmd}")
-        print(
-            "Available commands:",
-            ", ".join(COMMANDS.keys())
-        )
+        print("Available commands:", ", ".join(COMMANDS.keys()))
         return
     try:
         handler(args)
 
     except Exception as e:
         print(f"Error in '{cmd}': {e}")
+
 
 if __name__ == "__main__":
     main()

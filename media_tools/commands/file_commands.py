@@ -12,25 +12,24 @@ from media_tools.file_manager.fs_ops import (
     rename_all_from_metadata,
     safe_rename,
     replace_strings_in_filenames,
-    remove_until_dash
+    remove_prefix_from_filenames,
+    remove_suffix_from_filenames,
 )
 
 from media_tools.file_manager.metadata_ops import (
     create_metadata_csv,
     update_metadata_csv,
-    run_exif_error_scan
+    run_exif_error_scan,
 )
 
-from media_tools.file_manager.csv_ops import (
-    get_metadata_csv_list
-)
+from media_tools.file_manager.csv_ops import get_metadata_csv_list
 
 from media_tools.constants import (
     HOARD_METADATA_CSV_PATH,
     HOARD_PATHS,
     EXTS,
     CONVERT_MP3_CSV_PATH,
-    CONVERT_MP3_OUTPUT_PATH
+    CONVERT_MP3_OUTPUT_PATH,
 )
 
 
@@ -44,50 +43,34 @@ def run(args):
     sub.add_parser("update-csv")
     sub.add_parser("rename-all")
     exif_error_parser = sub.add_parser(
-    "exif-errors",
-    help="Find and move files that cause exiftool errors"
+        "exif-errors", help="Find and move files that cause exiftool errors"
     )
-    exif_error_parser.add_argument(
-        "path",
-        help="Folder path to scan"
-    )
+    exif_error_parser.add_argument("path", help="Folder path to scan")
 
     # automation commands
     sub.add_parser("convert")
     sub.add_parser("rename")
     sub.add_parser("clean")
     sub.add_parser("latest")
-    
-    # rename helpers
+
+    # string manipulation commands
     replace_parser = sub.add_parser("replace")
-    replace_parser.add_argument(
-        "targets",
-        nargs="+",
-        help="Strings to replace"
-    )
-    replace_parser.add_argument(
-        "--with",
-        dest="replacement",
-        required=True,
-        help="Replacement string"
-    )
+    replace_parser.add_argument("path")
+    replace_parser.add_argument("replacements", nargs="+")
     
-    # Remove until - in file names
-    remove_dash_parser = sub.add_parser("remove-dash")
-    remove_dash_parser.add_argument(
-        "path",
-        help="Folder path to process"
-    )
+    remove_prefix_parser = sub.add_parser("remove-prefix")
+    remove_prefix_parser.add_argument("path")
+    remove_prefix_parser.add_argument("prefix")
     
+    remove_suffix_parser = sub.add_parser("remove-suffix")
+    remove_suffix_parser.add_argument("path")
+    remove_suffix_parser.add_argument("suffix")
+
     # Convert to MP3
     convert_mp3_parser = sub.add_parser(
-    "convert-mp3",
-    help="Convert media files to MP3 using ffmpeg"
+        "convert-mp3", help="Convert media files to MP3 using ffmpeg"
     )
-    convert_mp3_parser.add_argument(
-        "path",
-        help="Folder path to scan and convert"
-    )
+    convert_mp3_parser.add_argument("path", help="Folder path to scan and convert")
 
     # full workflow
     sub.add_parser("organize")
@@ -174,32 +157,38 @@ def run(args):
 
     elif parsed.cmd == "replace":
 
-        files = file_search(HOARD_PATHS, EXTS)
+        files = file_search([Path(parsed.path)], EXTS)
 
-        renamed = replace_strings_in_filenames(
-            files,
-            parsed.targets,
-            parsed.replacement
-        )
+        args = parsed.replacements
 
-        print(f"Renamed {len(renamed)} files")
+        if len(args) % 2 != 0:
+            print("Replacement arguments must be pairs.")
+            return
+
+        replacements = []
+
+        for i in range(0, len(args), 2):
+            replacements.append((args[i], args[i + 1]))
+
+        replace_strings_in_filenames(files, replacements)
 
     # -------------------------
-    # REMOVE UNTIL DASH
+    # REMOVE PREFIX
     # -------------------------
+    elif parsed.cmd == "remove-prefix":
 
-    elif parsed.cmd == "remove-dash":
+        files = file_search([Path(parsed.path)], EXTS)
 
-        path = Path(parsed.path)
+        remove_prefix_from_filenames(files, parsed.prefix)
 
-        files = file_search(
-            [path],
-            [".m4a", ".mp4", ".webm", ".mp3", ".m4a"]
-        )
+    # -------------------------
+    # REMOVE SUFFIX
+    # -------------------------
+    elif parsed.cmd == "remove-suffix":
 
-        renamed = remove_until_dash(files)
+        files = file_search([Path(parsed.path)], EXTS)
 
-        print(f"Renamed {len(renamed)} files")
+        remove_suffix_from_filenames(files, parsed.suffix)
 
     # -------------------------
     # CONVERT MP3
@@ -213,7 +202,7 @@ def run(args):
             folder_path,
             [".mp4", ".webm", ".mp3"],
             CONVERT_MP3_CSV_PATH,
-            CONVERT_MP3_OUTPUT_PATH
+            CONVERT_MP3_OUTPUT_PATH,
         )
 
         print(f"\nsuccessfully converted {len(converted)} files")

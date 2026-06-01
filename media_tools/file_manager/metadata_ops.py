@@ -9,12 +9,12 @@ from media_tools.file_manager.csv_ops import (
     get_last_row_of_csv,
     append_metadata_csv,
     write_metadata_csv,
-    get_absolute_paths_from_metadata_csv
+    get_absolute_paths_from_metadata_csv,
 )
 from media_tools.file_manager.fs_ops import (
     file_search,
     rename_a_file_given_name,
-    lowercase_extensions
+    lowercase_extensions,
 )
 
 from media_tools.constants import (
@@ -23,7 +23,7 @@ from media_tools.constants import (
     HOARD_DROPPED_METADATA_CSV_PATH,
     HOARD_PATHS,
     EXTS,
-    FIELDS
+    FIELDS,
 )
 
 
@@ -36,10 +36,7 @@ def create_rename_metadata_rows(files):
     lastName = int(lastRowCSV[1])
 
     # create (timestamp, file) list
-    timestamps_filepaths = [
-        (int(getctime(file)), file)
-        for file in files
-    ]
+    timestamps_filepaths = [(int(getctime(file)), file) for file in files]
 
     # sort by creation time
     timestamps_filepaths.sort(key=itemgetter(0))
@@ -49,15 +46,18 @@ def create_rename_metadata_rows(files):
         new_name = str(lastName - i)
         rename_a_file_given_name(file, new_name)
 
-        metadataRows.append([
-            str(lastNo + i),
-            new_name,
-            str(file.suffix),
-            str(timestamp),
-            str(file.parent)
-        ])
+        metadataRows.append(
+            [
+                str(lastNo + i),
+                new_name,
+                str(file.suffix),
+                str(timestamp),
+                str(file.parent),
+            ]
+        )
 
     return metadataRows
+
 
 def apply_metadata_sync(sync_data):
     """
@@ -115,16 +115,10 @@ def apply_metadata_sync(sync_data):
     # -----------------------------------
 
     # filesystem names
-    filesystem_names = {
-        f.name: f
-        for f in all_files
-    }
+    filesystem_names = {f.name: f for f in all_files}
 
     # metadata names
-    metadata_names = {
-        f"{row[1]}{row[2]}": row
-        for row in rows
-    }
+    metadata_names = {f"{row[1]}{row[2]}": row for row in rows}
 
     # -----------------------------------
     # REMOVE DELETED FILES
@@ -159,10 +153,7 @@ def apply_metadata_sync(sync_data):
     # APPEND NEW FILES
     # -----------------------------------
 
-    new_files = [
-        f for f in all_files
-        if f.name not in metadata_names
-    ]
+    new_files = [f for f in all_files if f.name not in metadata_names]
 
     if new_files:
         new_rows = create_rename_metadata_rows(new_files)
@@ -174,27 +165,19 @@ def apply_metadata_sync(sync_data):
 
     # archive deleted rows
     if dropped_metadata:
-        append_metadata_csv(
-            dropped_metadata,
-            HOARD_DROPPED_METADATA_CSV_PATH
-        )
+        append_metadata_csv(dropped_metadata, HOARD_DROPPED_METADATA_CSV_PATH)
 
     # rewrite metadata CSV
-    write_metadata_csv(
-        updated_rows,
-        HOARD_METADATA_CSV_PATH
-    )
-    
+    write_metadata_csv(updated_rows, HOARD_METADATA_CSV_PATH)
+
+
 def build_metadata_rows(files):
     """
     Build CSV rows sorted by creation time (oldest → newest).
     """
 
     # create (timestamp, file) pairs
-    timestamped_files = [
-        (int(os.path.getctime(f)), f)
-        for f in files
-    ]
+    timestamped_files = [(int(os.path.getctime(f)), f) for f in files]
 
     # SORT BY CREATION TIME
     timestamped_files.sort(key=itemgetter(0))
@@ -202,15 +185,10 @@ def build_metadata_rows(files):
     rows = []
 
     for i, (timestamp, f) in enumerate(timestamped_files, 1):
-        rows.append([
-            i,
-            f.stem,
-            f.suffix,
-            timestamp,
-            str(f.parent)
-        ])
+        rows.append([i, f.stem, f.suffix, timestamp, str(f.parent)])
 
     return rows
+
 
 def create_metadata_csv(files):
     """
@@ -224,6 +202,7 @@ def create_metadata_csv(files):
         w.writerow(FIELDS)
         w.writerows(rows)
 
+
 def sync_metadata_state():
     """
     Compare filesystem vs CSV and return diff state.
@@ -232,9 +211,7 @@ def sync_metadata_state():
 
     fs_files = set(file_search(HOARD_PATHS, EXTS))
 
-    csv_paths = set(
-        map(Path, get_absolute_paths_from_metadata_csv(csv_rows))
-    )
+    csv_paths = set(map(Path, get_absolute_paths_from_metadata_csv(csv_rows)))
 
     # 1. deleted files (in CSV, not in FS)
     deleted = csv_paths - fs_files
@@ -245,17 +222,14 @@ def sync_metadata_state():
     # 3. existing files
     stable = fs_files & csv_paths
 
-    return {
-        "csv_rows": csv_rows,
-        "deleted": deleted,
-        "new": new,
-        "stable": stable
-    }
+    return {"csv_rows": csv_rows, "deleted": deleted, "new": new, "stable": stable}
+
 
 def update_metadata_csv():
     sync_data = sync_metadata_state()
     apply_metadata_sync(sync_data)
-    
+
+
 def get_absolute_paths_from_exif_errors(output):
     """
     Extract absolute file paths from exiftool error output.
@@ -276,13 +250,7 @@ def run_exif_error_scan(path):
     """
     Run exiftool, detect errors, move broken files.
     """
-    args = [
-        "exiftool",
-        "-r",
-        "-overwrite_original",
-        "-all=",
-        str(path)
-    ]
+    args = ["exiftool", "-r", "-overwrite_original", "-all=", str(path)]
 
     process = subprocess.run(args, capture_output=True, text=True)
 
@@ -293,16 +261,11 @@ def run_exif_error_scan(path):
 
     if process.returncode != 0:
 
-        broken_paths = get_absolute_paths_from_exif_errors(
-            process.stderr
-        )
+        broken_paths = get_absolute_paths_from_exif_errors(process.stderr)
 
         for p in broken_paths:
             new_destination = HOARD_BROKEN_VIDS_PATH / p.name
             p.replace(new_destination)
             broken_count += 1
 
-    return {
-        "moved": broken_count,
-        "success": process.returncode == 0
-    }
+    return {"moved": broken_count, "success": process.returncode == 0}

@@ -1,16 +1,15 @@
 import csv
 from pathlib import Path
 
-from media_tools.constants import (
-    HOARD_METADATA_CSV_PATH,
-    FIELDS
-)
+from media_tools.constants import HOARD_METADATA_CSV_PATH, FIELDS
+
 
 def get_metadata_csv_list(path):
     # load CSV into memory
     with open(path, newline="", encoding="utf-8") as f:
         return list(csv.reader(f))
-    
+
+
 def write_metadata_csv(listToWrite, path):
     with open(path, "w", newline="", encoding="utf-8") as f:
         # get file writer object
@@ -21,7 +20,8 @@ def write_metadata_csv(listToWrite, path):
 
         # write data to rows with list
         csvwriter.writerows(listToWrite)
-    
+
+
 def append_metadata_csv(listToAppend, path):
     with open(path, "a", newline="", encoding="utf-8") as f:
         # get file writer object
@@ -29,13 +29,15 @@ def append_metadata_csv(listToAppend, path):
 
         # append data to rows with list
         csvwriter.writerows(listToAppend)
-        
+
+
 def get_last_row_of_csv(path):
     # get metadata list
     metaDataList = get_metadata_csv_list(path)
 
     # return last row (without modifying list)
     return metaDataList[-1]
+
 
 def get_absolute_paths_from_metadata_csv(metadataCSVList):
     absolutePaths = []
@@ -45,11 +47,10 @@ def get_absolute_paths_from_metadata_csv(metadataCSVList):
 
     # create and append absolute paths
     for row in metadataCSVList:
-        absolutePaths.append(
-            Path(row[4]) / f"{row[1]}{row[2]}"
-        )
+        absolutePaths.append(Path(row[4]) / f"{row[1]}{row[2]}")
 
     return absolutePaths
+
 
 def get_file_path_from_name(nameList):
     pathList = []
@@ -70,6 +71,7 @@ def get_file_path_from_name(nameList):
                 break
 
     return pathList
+
 
 def get_file_path_from_stem(stemList):
     pathList = []

@@ -1,10 +1,7 @@
 import subprocess
 from random import randint
 
-from media_tools.file_manager.fs_ops import (
-    file_search,
-    sort_files_by_creation_date
-)
+from media_tools.file_manager.fs_ops import file_search, sort_files_by_creation_date
 
 from media_tools.constants import (
     HOARD_PATHS,
@@ -12,21 +9,14 @@ from media_tools.constants import (
 )
 
 # video formats to convert
-EXTENSIONS_TO_ENCODE = [
-    ".mov",
-    ".webm",
-    ".mkv"
-]
+EXTENSIONS_TO_ENCODE = [".mov", ".webm", ".mkv"]
 
 
 # Convert videos into mp4
 def convert_videos():
     print("\nVideo converter started.")
 
-    files = file_search(
-        HOARD_PATHS,
-        EXTENSIONS_TO_ENCODE
-    )
+    files = file_search(HOARD_PATHS, EXTENSIONS_TO_ENCODE)
 
     # oldest -> newest
     files = sort_files_by_creation_date(files)
@@ -40,18 +30,18 @@ def convert_videos():
 
     for file in files:
         # randomized output name
-        output_name = (
-            file.parent /
-            f"{file.stem}_{randint(10000, 99999)}.mp4"
-        )
+        output_name = file.parent / f"{file.stem}_{randint(10000, 99999)}.mp4"
 
         # ffmpeg command
         args = [
             "ffmpeg",
-            "-i", str(file),
-            "-c:v", "libx264",
-            "-c:a", "aac",
-            str(output_name)
+            "-i",
+            str(file),
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            str(output_name),
         ]
 
         # execute ffmpeg
@@ -76,9 +66,7 @@ def convert_videos():
                 output_name.unlink()
 
             # move broken source
-            file.replace(
-                HOARD_BROKEN_VIDS_PATH / file.name
-            )
+            file.replace(HOARD_BROKEN_VIDS_PATH / file.name)
 
     print("Video converter finished.\n")
 

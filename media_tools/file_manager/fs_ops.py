@@ -1,13 +1,10 @@
-# Search files by extension in multiple roots
+import subprocess
 from pathlib import Path
 from os import walk, makedirs
 from os.path import join, exists, relpath, getctime
 
-from media_tools.constants import (
-    HOARD_PATHS,
-    EXTS,
-    REVERSE_NAMING_CONST
-)
+from media_tools.constants import HOARD_PATHS, EXTS, REVERSE_NAMING_CONST
+
 
 def file_search(paths, extensions):
     extensions = set(extensions)
@@ -25,6 +22,7 @@ def file_search(paths, extensions):
 
     return list(results)
 
+
 # normalize extensions (.PNG -> .png)
 def lowercase_extensions(paths, extensions):
     files = file_search(paths, extensions)
@@ -37,7 +35,8 @@ def lowercase_extensions(paths, extensions):
         if f.suffix != lower_ext:
             new_path = f.with_suffix(lower_ext)
             f.rename(new_path)
-        
+
+
 def empty_hoard_folders():
     # search files given paths
     files = file_search(HOARD_PATHS, EXTS)
@@ -45,6 +44,7 @@ def empty_hoard_folders():
     for f in files:
         # delete file
         f.unlink()
+
 
 def copy_folders_to_another_folder(input_folder, output_folder):
     # Create the output folder if it doesn't exist
@@ -62,9 +62,11 @@ def copy_folders_to_another_folder(input_folder, output_folder):
 
             makedirs(dest_dir, exist_ok=True)
 
+
 def sort_files_by_creation_date(files):
     # sort files by creation time (oldest → newest)
     return sorted(files, key=getctime)
+
 
 def rename_a_file_given_name(file, new_file_name):
     # rename the file
@@ -79,7 +81,8 @@ def rename_a_file_given_name(file, new_file_name):
 
     # rename
     file.rename(absolute_new_file_name)
-    
+
+
 def safe_rename(old_path, new_name):
     # rename helper (keeps logic centralized)
     old_path = Path(old_path)
@@ -87,6 +90,7 @@ def safe_rename(old_path, new_name):
 
     old_path.rename(new_path)
     return new_path
+
 
 def build_path(row):
     # row = [no, file_name, ext, time, parent]
@@ -101,51 +105,28 @@ def rename_all_from_metadata(rows, safe_rename):
         new_name = f"{REVERSE_NAMING_CONST - int(row[0])}{old_path.suffix}"
 
         safe_rename(old_path, new_name)
-        
-def replace_strings_in_filenames(
-    files,
-    targets,
-    replacement
-):
-    renamed = []
+
+
+def replace_strings_in_filenames(files, replacements):
+    """
+    replacements:
+    [
+        ("old1", "new1"),
+        ("old2", "new2")
+    ]
+    """
 
     for file_path in files:
+
         new_name = file_path.name
 
-        for target in targets:
-            new_name = new_name.replace(
-                target,
-                replacement
-            )
+        for old, new in replacements:
+            new_name = new_name.replace(old, new)
 
         if new_name != file_path.name:
-            new_path = file_path.with_name(new_name)
+            file_path.rename(file_path.with_name(new_name))
 
-            file_path.rename(new_path)
-
-            renamed.append((file_path, new_path))
-
-    return renamed
-
-
-def remove_until_dash(files):
-    renamed = []
-
-    for file in files:
-        file_name = file.name
-
-        if "-" in file_name:
-            new_name = file_name.split("-", 1)[1].strip()
-        else:
-            continue  # no change
-
-        new_path = rename_a_file_given_name(file, Path(new_name))
-        renamed.append((file, new_path))
-
-    return renamed
-
-import subprocess
-from pathlib import Path
+            print(f"Renamed: {file_path.name} -> {new_name}")
 
 
 def encode_to_mp3(files, temp_path):
@@ -167,11 +148,14 @@ def encode_to_mp3(files, temp_path):
         # ffmpeg command
         args = [
             "ffmpeg",
-            "-i", str(file),
+            "-i",
+            str(file),
             "-vn",
-            "-acodec", "libmp3lame",
-            "-ab", "128k",
-            str(output_path)
+            "-acodec",
+            "libmp3lame",
+            "-ab",
+            "128k",
+            str(output_path),
         ]
 
         # execute ffmpeg
@@ -191,3 +175,31 @@ def encode_to_mp3(files, temp_path):
                 output_path.unlink()
 
     return converted
+
+
+def remove_prefix_from_filenames(files, prefix):
+    for file_path in files:
+
+        if file_path.name.startswith(prefix):
+
+            new_name = file_path.name[len(prefix) :]
+
+            file_path.rename(file_path.with_name(new_name))
+
+            print(f"Renamed: {file_path.name} -> {new_name}")
+
+
+def remove_suffix_from_filenames(files, suffix):
+    for file_path in files:
+
+        stem = file_path.stem
+
+        if stem.endswith(suffix):
+
+            new_stem = stem[: -len(suffix)]
+
+            new_name = new_stem + file_path.suffix
+
+            file_path.rename(file_path.with_name(new_name))
+
+            print(f"Renamed: {file_path.name} -> {new_name}")

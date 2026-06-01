@@ -17,6 +17,7 @@ def parse_timestamps(file_path):
 
     return timestamps
 
+
 def convert_time_to_seconds(time_str):
     parts = list(map(int, time_str.split(":")))
 
@@ -30,9 +31,11 @@ def convert_time_to_seconds(time_str):
 
     return 0
 
+
 def sanitize_filename(name):
     """Removes invalid characters for filenames."""
-    return re.sub(r'[<>:"/\\|?*]', '_', name)
+    return re.sub(r'[<>:"/\\|?*]', "_", name)
+
 
 def get_start_unixtimestamp_by_given_day(day):
     # 86400 seconds = 1 day

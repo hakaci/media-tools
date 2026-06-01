@@ -6,12 +6,7 @@ from media_tools.constants import HOARD_PATH
 
 # remove all metadata using exiftool
 def clear_metadata(path_to_clean):
-    args = [
-        "exiftool",
-        "-overwrite_original",
-        "-all=",
-        str(path_to_clean)
-    ]
+    args = ["exiftool", "-overwrite_original", "-all=", str(path_to_clean)]
 
     process = subprocess.run(args)
 

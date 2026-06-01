@@ -1,6 +1,6 @@
 from media_tools.youtube.csv_store import (
     get_metadata_csv_list,
-    get_channels_list_from_csv
+    get_channels_list_from_csv,
 )
 
 from media_tools.constants import HOARD_YOUTUBE_CSV_PATH
