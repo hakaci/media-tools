@@ -53,11 +53,57 @@ Examples:
   media-tools youtube download
 """
 
+
 def print_youtube_help():
     print(YOUTUBE_HELP)
 
-def run(args):
 
+def handle_metadata(args):
+    if not args:
+        print(METADATA_HELP)
+        return
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--url", nargs="+")
+    parser.add_argument("--playlist")
+
+    parsed = parser.parse_args(args)
+
+    if parsed.url:
+        append_single_video_metadata(parsed.url)
+        return
+
+    if parsed.playlist:
+        append_playlist_metadata(parsed.playlist)
+        return
+
+    print(METADATA_HELP)
+
+
+def handle_download(args):
+    if not args:
+        print(DOWNLOAD_HELP)
+        return
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--channel")
+    parser.add_argument("--limit", type=int)
+
+    parsed = parser.parse_args(args)
+
+    channel = parsed.channel or choose_channel()
+
+    limit = parsed.limit
+    if limit is None:
+        try:
+            limit = int(input("Enter download limit: "))
+        except ValueError:
+            limit = 10
+
+    download_youtube_videos(channel_name=channel, limit=limit)
+
+
+def run(args):
     if not args:
         print_youtube_help()
         return
@@ -65,50 +111,9 @@ def run(args):
     cmd = args[0]
 
     if cmd == "metadata":
-
-        if len(args) == 1:
-            print(METADATA_HELP)
-            return
-
-        parser = argparse.ArgumentParser(add_help=False)
-        parser.add_argument("--url", nargs="+")
-        parser.add_argument("--playlist")
-
-        parsed = parser.parse_args(args[1:])
-
-        if parsed.url:
-            append_single_video_metadata(parsed.url)
-            return
-
-        if parsed.playlist:
-            append_playlist_metadata(parsed.playlist)
-            return
-
-        print(METADATA_HELP)
-        return
+        return handle_metadata(args[1:])
 
     if cmd == "download":
-
-        if len(args) == 1:
-            print(DOWNLOAD_HELP)
-            return
-
-        parser = argparse.ArgumentParser(add_help=False)
-        parser.add_argument("--channel")
-        parser.add_argument("--limit", type=int)
-
-        parsed = parser.parse_args(args[1:])
-
-        channel = parsed.channel or choose_channel()
-
-        limit = parsed.limit
-        if limit is None:
-            try:
-                limit = int(input("Enter download limit: "))
-            except ValueError:
-                limit = 10
-
-        download_youtube_videos(channel_name=channel, limit=limit)
-        return
+        return handle_download(args[1:])
 
     print_youtube_help()

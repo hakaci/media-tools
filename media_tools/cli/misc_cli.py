@@ -33,32 +33,20 @@ Examples:
 """
 
 
-def print_misc_help():
-    print("""
+MISC_HELP = """
 Misc Commands:
 
   split-video     Split media file into segments using timestamps
-""")
+"""
 
 
-def run(args):
+def handle_split_video(args):
     if not args:
-        print_misc_help()
-        return
-
-    cmd = args[0]
-
-    if cmd != "split-video":
-        print(f"Unknown command: {cmd}")
-        print_misc_help()
-        return
-
-    if len(args) == 1:
         print(SPLIT_VIDEO_HELP)
         return
 
     parser = argparse.ArgumentParser(
-        prog="media-tools misc split-video"
+        prog="media-tools misc split-video", add_help=False
     )
 
     parser.add_argument("video_path")
@@ -66,7 +54,7 @@ def run(args):
     parser.add_argument("--output", default=DEFAULT_SPLIT_OUTPUT_FOLDER)
     parser.add_argument("--no-original", action="store_true")
 
-    parsed = parser.parse_args(args[1:])
+    parsed = parser.parse_args(args)
 
     if not os.path.exists(parsed.video_path):
         print("Error: video not found")
@@ -82,3 +70,17 @@ def run(args):
         include_original_name=not parsed.no_original,
         output_folder=parsed.output,
     )
+
+
+def run(args):
+    if not args:
+        print(MISC_HELP)
+        return
+
+    cmd = args[0]
+
+    if cmd == "split-video":
+        return handle_split_video(args[1:])
+
+    print(f"Unknown command: {cmd}")
+    print(MISC_HELP)
