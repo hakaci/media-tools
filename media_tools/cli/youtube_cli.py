@@ -12,108 +12,68 @@ COMMAND_NAME = "youtube"
 DESCRIPTION = "Download and process YouTube media"
 
 
-YOUTUBE_HELP = """
-YouTube Commands:
-
-  metadata     Append video or playlist metadata into CSV
-  download     Download videos from metadata CSV
-"""
-
-
-METADATA_HELP = """
-Append YouTube video metadata into CSV.
-
-Usage:
-  media-tools youtube metadata [--url URL ...] [--playlist URL]
-
-Options:
-  --url        One or more video URLs
-  --playlist   Playlist or channel URL
-
-Examples:
-  media-tools youtube metadata --url https://youtube.com/watch?v=xxxx
-  media-tools youtube metadata --url url1 url2 url3
-  media-tools youtube metadata --playlist https://youtube.com/playlist?list=xxxx
-"""
-
-
-DOWNLOAD_HELP = """
-Download YouTube videos from metadata CSV.
-
-Usage:
-  media-tools youtube download [--channel NAME] [--limit N]
-
-Options:
-  --channel   Channel name from CSV (default: interactive)
-  --limit     Number of videos to download (default: 10)
-
-Examples:
-  media-tools youtube download --channel "Music"
-  media-tools youtube download --channel "Music" --limit 20
-  media-tools youtube download
-"""
-
-
-def print_youtube_help():
-    print(YOUTUBE_HELP)
-
-
-def handle_metadata(args):
-    if not args:
-        print(METADATA_HELP)
-        return
-
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--url", nargs="+")
-    parser.add_argument("--playlist")
-
-    parsed = parser.parse_args(args)
-
-    if parsed.url:
-        append_single_video_metadata(parsed.url)
-        return
-
-    if parsed.playlist:
-        append_playlist_metadata(parsed.playlist)
-        return
-
-    print(METADATA_HELP)
-
-
-def handle_download(args):
-    if not args:
-        print(DOWNLOAD_HELP)
-        return
-
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--channel")
-    parser.add_argument("--limit", type=int)
-
-    parsed = parser.parse_args(args)
-
-    channel = parsed.channel or choose_channel()
-
-    limit = parsed.limit
-    if limit is None:
-        try:
-            limit = int(input("Enter download limit: "))
-        except ValueError:
-            limit = 10
-
-    download_youtube_videos(channel_name=channel, limit=limit)
-
-
 def run(args):
-    if not args:
-        print_youtube_help()
+    parser = argparse.ArgumentParser(
+        prog="media-tools youtube",
+        add_help=True,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    sub = parser.add_subparsers(dest="cmd", metavar="command")
+    sub.required = False
+
+    metadata_parser = sub.add_parser(
+        "metadata", help="Append video or playlist metadata into CSV"
+    )
+    metadata_parser.add_argument(
+        "--url", nargs="+", help="One or more YouTube video URLs"
+    )
+    metadata_parser.add_argument("--playlist", help="Playlist or channel URL")
+
+    download_parser = sub.add_parser(
+        "download", help="Download videos from metadata CSV"
+    )
+    download_parser.add_argument(
+        "--channel", help="Channel name from CSV (default: interactive selection)"
+    )
+
+    download_parser.add_argument(
+        "--limit", type=int, help="Number of videos to download (default: 10)"
+    )
+
+    parsed = parser.parse_args(args)
+
+    if parsed.cmd is None:
+        parser.print_help()
         return
 
-    cmd = args[0]
+    # -------------------------
+    # METADATA
+    # -------------------------
+    if parsed.cmd == "metadata":
+        if parsed.url:
+            append_single_video_metadata(parsed.url)
+            return
 
-    if cmd == "metadata":
-        return handle_metadata(args[1:])
+        if parsed.playlist:
+            append_playlist_metadata(parsed.playlist)
+            return
 
-    if cmd == "download":
-        return handle_download(args[1:])
+        return
 
-    print_youtube_help()
+    # -------------------------
+    # DOWNLOAD
+    # -------------------------
+    if parsed.cmd == "download":
+        channel = parsed.channel or choose_channel()
+
+        limit = parsed.limit
+        if limit is None:
+            try:
+                limit = int(input("Enter download limit: "))
+            except ValueError:
+                limit = 10
+
+        download_youtube_videos(channel_name=channel, limit=limit)
+
+    parser.print_help()

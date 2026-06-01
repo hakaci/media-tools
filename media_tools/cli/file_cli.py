@@ -37,48 +37,69 @@ DESCRIPTION = "File operations: rename, convert, clean, organize"
 
 
 def run(args):
-    parser = argparse.ArgumentParser(prog="media-tools file")
-
-    sub = parser.add_subparsers(dest="cmd")
+    parser = argparse.ArgumentParser(
+        prog="media-tools file",
+        add_help=True,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    sub = parser.add_subparsers(dest="cmd", metavar="command")
+    sub.required = False
 
     # metadata commands
-    sub.add_parser("create-csv")
-    sub.add_parser("update-csv")
-    sub.add_parser("rename-all")
+    sub.add_parser("create-csv", help="Create metadata CSV from filesystem scan")
+    sub.add_parser(
+        "update-csv", help="Update metadata CSV by syncing filesystem changes"
+    )
+    sub.add_parser("rename-all", help="Rename all files using metadata CSV mapping")
     exif_error_parser = sub.add_parser(
-        "exif-errors", help="Find and move files that cause exiftool errors"
+        "exif-errors",
+        help="Detect files that fail metadata cleaning and move them to broken files folder",
     )
     exif_error_parser.add_argument("path", help="Folder path to scan")
 
     # automation commands
-    sub.add_parser("convert")
-    sub.add_parser("rename")
-    sub.add_parser("clean")
-    sub.add_parser("latest")
+    sub.add_parser("convert", help="Convert supported video files to MP4 using ffmpeg")
+    sub.add_parser(
+        "rename", help="Rename newly added files and append them into metadata CSV"
+    )
+    sub.add_parser("clean", help="Remove metadata from media files using exiftool")
+    sub.add_parser("latest", help="Copy latest tracked files into temp folder")
 
     # string manipulation commands
-    replace_parser = sub.add_parser("replace")
-    replace_parser.add_argument("path")
-    replace_parser.add_argument("replacements", nargs="+")
+    replace_parser = sub.add_parser("replace", help="Replace strings inside filenames")
+    replace_parser.add_argument("path", help="Folder path to scan files in")
+    replace_parser.add_argument(
+        "replacements",
+        nargs="+",
+        help="Pairs of strings to replace (old new old new ...)",
+    )
 
-    remove_prefix_parser = sub.add_parser("remove-prefix")
-    remove_prefix_parser.add_argument("path")
-    remove_prefix_parser.add_argument("prefix")
+    remove_prefix_parser = sub.add_parser(
+        "remove-prefix", help="Remove prefix from filenames"
+    )
+    remove_prefix_parser.add_argument("path", help="Folder path to scan files in")
+    remove_prefix_parser.add_argument("prefix", help="Prefix to remove")
 
-    remove_suffix_parser = sub.add_parser("remove-suffix")
-    remove_suffix_parser.add_argument("path")
-    remove_suffix_parser.add_argument("suffix")
+    remove_suffix_parser = sub.add_parser(
+        "remove-suffix", help="Remove suffix from filenames"
+    )
+    remove_suffix_parser.add_argument("path", help="Folder path to scan files in")
+    remove_suffix_parser.add_argument("suffix", help="Suffix to remove")
 
     # Convert to MP3
     convert_mp3_parser = sub.add_parser(
-        "convert-mp3", help="Convert media files to MP3 using ffmpeg"
+        "convert-mp3", help="Convert supported media files to MP3 using ffmpeg"
     )
     convert_mp3_parser.add_argument("path", help="Folder path to scan and convert")
 
     # full workflow
-    sub.add_parser("organize")
+    sub.add_parser("organize", help="Organize and synchronize media archive")
 
     parsed = parser.parse_args(args)
+
+    if parsed.cmd is None:
+        parser.print_help()
+        return
 
     # -------------------------
     # CREATE CSV
@@ -116,7 +137,7 @@ def run(args):
         print("Full rename + CSV reset completed")
 
     # -------------------------
-    # RENAME ALL FILES
+    # EXIF ERRORS
     # -------------------------
 
     elif parsed.cmd == "exif-errors":
