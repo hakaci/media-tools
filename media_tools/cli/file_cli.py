@@ -11,6 +11,7 @@ from media_tools.file_manager.fs_ops import (
     file_search,
     rename_all_from_metadata,
     safe_rename,
+    path_search,
     replace_strings_in_filenames,
     remove_prefix_from_filenames,
     remove_suffix_from_filenames,
@@ -72,6 +73,12 @@ def run(args):
         "replacements",
         nargs="+",
         help="Pairs of strings to replace (old new old new ...)",
+    )
+    replace_parser.add_argument(
+        "--include-folders",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Include folder names in replacements (default: True)",
     )
 
     remove_prefix_parser = sub.add_parser(
@@ -181,38 +188,39 @@ def run(args):
 
     elif parsed.cmd == "replace":
 
-        files = file_search([Path(parsed.path)], EXTS)
+        paths = path_search(Path(parsed.path))
 
-        args = parsed.replacements
-
-        if len(args) % 2 != 0:
-            print("Replacement arguments must be pairs.")
-            return
-
-        replacements = []
-
-        for i in range(0, len(args), 2):
-            replacements.append((args[i], args[i + 1]))
-
-        replace_strings_in_filenames(files, replacements)
+        replace_strings_in_filenames(
+            paths,
+            parsed.replacements,
+            include_folders=parsed.include_folders,
+        )
 
     # -------------------------
     # REMOVE PREFIX
     # -------------------------
     elif parsed.cmd == "remove-prefix":
 
-        files = file_search([Path(parsed.path)], EXTS)
+        paths = path_search(Path(parsed.path))
 
-        remove_prefix_from_filenames(files, parsed.prefix)
+        remove_prefix_from_filenames(
+            paths,
+            parsed.prefix,
+            include_folders=parsed.include_folders,
+        )
 
     # -------------------------
     # REMOVE SUFFIX
     # -------------------------
     elif parsed.cmd == "remove-suffix":
 
-        files = file_search([Path(parsed.path)], EXTS)
+        paths = path_search(Path(parsed.path))
 
-        remove_suffix_from_filenames(files, parsed.suffix)
+        remove_suffix_from_filenames(
+            paths,
+            parsed.suffix,
+            include_folders=parsed.include_folders,
+        )
 
     # -------------------------
     # CONVERT MP3

@@ -107,28 +107,6 @@ def rename_all_from_metadata(rows, safe_rename):
         safe_rename(old_path, new_name)
 
 
-def replace_strings_in_filenames(files, replacements):
-    """
-    replacements:
-    [
-        ("old1", "new1"),
-        ("old2", "new2")
-    ]
-    """
-
-    for file_path in files:
-
-        new_name = file_path.name
-
-        for old, new in replacements:
-            new_name = new_name.replace(old, new)
-
-        if new_name != file_path.name:
-            file_path.rename(file_path.with_name(new_name))
-
-            print(f"Renamed: {file_path.name} -> {new_name}")
-
-
 def encode_to_mp3(files, temp_path):
     converted = []
 
@@ -177,29 +155,105 @@ def encode_to_mp3(files, temp_path):
     return converted
 
 
-def remove_prefix_from_filenames(files, prefix):
-    for file_path in files:
+def path_search(root_path):
+    """
+    Return all files and folders recursively.
 
-        if file_path.name.startswith(prefix):
+    Paths are returned deepest-first so parent folder
+    renames do not break child paths.
+    """
 
-            new_name = file_path.name[len(prefix) :]
+    root_path = Path(root_path)
 
-            file_path.rename(file_path.with_name(new_name))
+    paths = []
 
-            print(f"Renamed: {file_path.name} -> {new_name}")
+    for path in root_path.rglob("*"):
+        paths.append(path)
+
+    return sorted(
+        paths,
+        key=lambda p: len(p.parts),
+        reverse=True,
+    )
 
 
-def remove_suffix_from_filenames(files, suffix):
-    for file_path in files:
+def replace_strings_in_filenames(
+    paths,
+    replacement_args,
+    include_folders=True,
+):
+    if len(replacement_args) % 2 != 0:
+        print("Replacement arguments must be pairs.")
+        return
 
-        stem = file_path.stem
+    replacements = []
 
-        if stem.endswith(suffix):
+    for i in range(0, len(replacement_args), 2):
+        replacements.append((replacement_args[i], replacement_args[i + 1]))
 
-            new_stem = stem[: -len(suffix)]
+    for path in paths:
 
-            new_name = new_stem + file_path.suffix
+        if path.is_dir() and not include_folders:
+            continue
 
-            file_path.rename(file_path.with_name(new_name))
+        new_name = path.name
 
-            print(f"Renamed: {file_path.name} -> {new_name}")
+        for old, new in replacements:
+            new_name = new_name.replace(old, new)
+
+        if new_name == path.name:
+            continue
+
+        path.rename(path.with_name(new_name))
+
+        print(f"Renamed: {path.name} -> {new_name}")
+
+
+def remove_prefix_from_filenames(
+    paths,
+    prefix,
+    include_folders=True,
+):
+    for path in paths:
+
+        if path.is_dir() and not include_folders:
+            continue
+
+        new_name = path.name
+
+        if new_name.startswith(prefix):
+            new_name = new_name[len(prefix) :]
+
+        if new_name == path.name:
+            continue
+
+        new_path = path.with_name(new_name)
+
+        path.rename(new_path)
+
+        print(f"Renamed: {path.name} -> {new_name}")
+
+
+def remove_suffix_from_filenames(
+    paths,
+    suffix,
+    include_folders=True,
+):
+    for path in paths:
+
+        if path.is_dir() and not include_folders:
+            continue
+
+        new_name = path.name
+
+        if new_name.endswith(suffix):
+            new_name = new_name[: -len(suffix)]
+
+        if new_name == path.name:
+            continue
+
+        new_path = path.with_name(new_name)
+
+        path.rename(new_path)
+
+        print(f"Renamed: {path.name} -> {new_name}")
